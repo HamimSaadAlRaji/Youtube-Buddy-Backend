@@ -8,9 +8,9 @@ CORS(app)  # Allow all origins
 @app.route('/ask', methods=['POST'])
 def ask():
     data = request.json
-    video_id = data['video_id']
+    url = data['url']
     question = data['question']
-    answer = answer_question(video_id, question)
+    answer = answer_question(url, question)
     return jsonify({'answer': answer})
 
 if __name__ == '__main__':

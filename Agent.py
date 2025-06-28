@@ -28,17 +28,16 @@ def format_docs(retrieved_docs):
     context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
     return context_text
 
-def answer_question(video_id, question):
+def answer_question(url, question):
     try:
-        # Use custom transcript API
-        api_url = f"https://youtube-transcript-api-six.vercel.app/api/transcript?url=https://www.youtube.com/watch?v={video_id}"
+        api_url = f"https://youtube-transcript-api-six.vercel.app/api/transcript?url={url}"
         response = requests.get(api_url)
         response.raise_for_status()
         
         transcript_data = response.json()
         
         # Extract transcript text from the API response
-        if 'transcript' in transcript_data:
+        if transcript_data.get('success') and 'transcript' in transcript_data:
             transcript_list = transcript_data['transcript']
             transcript = " ".join(chunk["text"] for chunk in transcript_list)
         else:
