@@ -1,4 +1,4 @@
-from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
+import requests
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
@@ -30,12 +30,24 @@ def format_docs(retrieved_docs):
 
 def answer_question(video_id, question):
     try:
-        transcript_list = YouTubeTranscriptApi.get_transcript(video_id, languages=["en"])
-        transcript = " ".join(chunk["text"] for chunk in transcript_list)
-    except TranscriptsDisabled:
-        return "No captions available for this video."
-    except Exception as e:
+        # Use custom transcript API
+        api_url = f"https://youtube-transcript-api-six.vercel.app/api/transcript?url=https://www.youtube.com/watch?v={video_id}"
+        response = requests.get(api_url)
+        response.raise_for_status()
+        
+        transcript_data = response.json()
+        
+        # Extract transcript text from the API response
+        if 'transcript' in transcript_data:
+            transcript_list = transcript_data['transcript']
+            transcript = " ".join(chunk["text"] for chunk in transcript_list)
+        else:
+            return "No transcript data found in the response."
+            
+    except requests.exceptions.RequestException as e:
         return f"Error fetching transcript: {e}"
+    except Exception as e:
+        return f"Error processing transcript: {e}"
 
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
     chunks = splitter.create_documents([transcript])

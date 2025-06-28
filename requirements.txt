@@ -1,7 +1,6 @@
 Flask
 flask-cors
 python-dotenv
-youtube-transcript-api
 langchain
 langchain-community
 langchain-core
