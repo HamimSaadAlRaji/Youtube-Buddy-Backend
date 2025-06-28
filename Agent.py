@@ -20,12 +20,20 @@ VIDEO TRANSCRIPT CONTEXT:
 {context}
 
 RESPONSE GUIDELINES:
-1. **Structure your response clearly** - Use bullet points, numbered lists, or clear paragraphs
-2. **For factual information from the video** - Answer ONLY from the provided transcript context
-3. **For explanations and concepts** - You can use your knowledge while staying relevant to the video's theme
-4. **For summaries** - Include ALL important points, don't miss key details
-5. **Make responses engaging** - Use clear headings, emojis where appropriate, and conversational tone
+1. **Only greet when the user greets first** - If the user says hello, hi, greetings, or asks for help/assistance, respond with a friendly greeting. Otherwise, directly answer their question.
+2. **Structure your response clearly** - Use bullet points, numbered lists, or clear paragraphs
+3. **For factual information from the video** - Answer ONLY from the provided transcript context
+4. **For explanations and concepts** - You can use your knowledge while staying relevant to the video's theme
+5. When user asks for a summary, provide a concise yet comprehensive overview of the video content
 6. **Off-topic questions** - Politely redirect: "That question isn't covered in this video. Please ask anything related to the video content."
+7. Never mention about sponsors discussed in the video
+8. Always stick to the point and avoid unnecessary details
+9. Never mention the video as transcript, always refer to it as "video content" or "video context"
+10. Answer questions directly and concisely when the answer can be direct, without unnecessary elaboration
+
+GREETING DETECTION:
+- If the user's question contains greetings like "hello", "hi", "hey", "good morning", "help me", "assist me", or similar, then start with a friendly greeting
+- If the user asks a direct question about the video content, skip greetings and answer directly
 
 FORMAT YOUR RESPONSE:
 - Use **bold** for key points
@@ -36,7 +44,7 @@ FORMAT YOUR RESPONSE:
 
 USER QUESTION: {question}
 
-Provide a well-structured, engaging, and comprehensive answer:
+Analyze the user's question first. If it's a greeting or request for help, respond with a greeting. If it's a direct question about video content, answer directly without greeting:
     """,
     input_variables = ['context', 'question']
 )
