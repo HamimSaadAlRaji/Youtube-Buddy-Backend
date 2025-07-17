@@ -19,12 +19,16 @@ You are a YouTube video content assistant that helps users understand video info
 VIDEO CONTENT:
 {context}
 
+CONVERSATION HISTORY:
+{history}
+
 CORE RULES:
 1. **STRICT CONTENT BOUNDARY**: Only answer questions about topics present in the video content above
 2. **SUPPLEMENT WHEN NEEDED**: If a topic is mentioned but lacks detail, enhance with relevant knowledge while staying aligned with the video's theme
 3. **REJECT OFF-TOPIC**: If the question is completely unrelated to the video content, respond: "This topic isn't covered in the video. Please ask about something from the video content."
 4. **IGNORE GREETINGS**: Skip "hi", "hello", "hey" - jump straight to answering the question
 5. **STRUCTURED RESPONSES**: Always format clearly with bullet points or numbered lists
+6. **CONVERSATION AWARENESS**: Use the conversation history to provide contextual responses and avoid repeating information
 
 RESPONSE FORMAT:
 • Use **bold** for key concepts and important terms
@@ -37,35 +41,48 @@ USER QUESTION: {question}
 
 PROCESS:
 1. Check if the question relates to any topic in the video content
-2. If YES: Answer using video information, supplement with knowledge if the video lacks detail
-3. If NO: Politely decline and redirect to video-related topics
+2. Consider the conversation history for context
+3. If YES: Answer using video information, supplement with knowledge if the video lacks detail
+4. If NO: Politely decline and redirect to video-related topics
     """,
-    input_variables=['context', 'question']
+    input_variables=['context', 'question', 'history']
 )
 
 def format_docs(retrieved_docs):
     context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
     return context_text
 
-def answer_question(url, question):
+def answer_question(context):
     try:
-        api_url = f"https://youtube-transcript-api-six.vercel.app/api/transcript?url={url}"
-        response = requests.get(api_url)
-        response.raise_for_status()
+        # Extract transcript from the context object
+        transcript_data = context['context']['transcript']
+        transcript = " ".join(chunk["text"] for chunk in transcript_data)
         
-        transcript_data = response.json()
+        # Extract conversation history from messages
+        messages = context['context']['messages']
+        print("Messages:", messages)
+        history = ""
+        question = ""
         
-        # Extract transcript text from the API response
-        if transcript_data.get('success') and 'transcript' in transcript_data:
-            transcript_list = transcript_data['transcript']
-            transcript = " ".join(chunk["text"] for chunk in transcript_list)
-        else:
-            return "No transcript data found in the response."
+        # Process messages to build history and get the last question
+        for i, message in enumerate(messages):
+            if message['sender'] == 'user':
+                print(message['sender'])
+                question = message['message']
+                print("Question:", question)
             
-    except requests.exceptions.RequestException as e:
-        return f"Error fetching transcript: {e}"
+            # Build conversation history
+            sender = "User" if message['sender'] == 'user' else "Bot"
+            history += f"{sender}: {message['message']}\n"
+        
+        if not transcript:
+            return "No transcript data found in the context."
+        
+        if not question:
+            return "No question found in the conversation history."
+            
     except Exception as e:
-        return f"Error processing transcript: {e}"
+        return f"Error processing context: {e}"
 
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
     chunks = splitter.create_documents([transcript])
@@ -74,7 +91,8 @@ def answer_question(url, question):
 
     parallel_chain = RunnableParallel({
         'context': retriever | RunnableLambda(format_docs),
-        'question': RunnablePassthrough()
+        'question': RunnablePassthrough(),
+        'history': RunnableLambda(lambda x: history)
     })
     parser = StrOutputParser()
     main_chain = parallel_chain | prompt | llm | parser

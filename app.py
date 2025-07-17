@@ -7,10 +7,9 @@ CORS(app)  # Allow all origins
 
 @app.route('/ask', methods=['POST'])
 def ask():
-    data = request.json
-    url = data['url']
-    question = data['question']
-    answer = answer_question(url, question)
+    context = request.json
+    answer = answer_question(context)
+    print("Received context:", context)
     return jsonify({'answer': answer})
 
 if __name__ == '__main__':
