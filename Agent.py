@@ -1,8 +1,9 @@
 import requests
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_groq import ChatGroq
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough, RunnableLambda
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
@@ -10,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash-latest", temperature=0.2)
+llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.2)
 
 prompt = PromptTemplate(
     template="""
